@@ -1,0 +1,20 @@
+<html lang="en">
+<head>
+  <title>Tiny App</title>
+</head>
+<body>
+    <!-- Add your EJS code here -->
+    <header>
+    <% include ./partials/_header %>
+    </header>
+
+    <h2>List of IDs and URLs</h2>
+    <ul>
+    <% for (var url in urls) { %>
+        <li><%= url + ': '%> <a href="<%= urls[url] %>"><%= urls[url] %></a></li>
+        <form method="post" action="/urls/<%= url %>/delete"> <a href="/urls/<%= url %>">Edit</a> <button type="submit">Delete</button></form>
+    <% } %>
+    </ul>
+    <a href="/urls/new">Generate a Short ID for Your URL</a>
+</body>
+</html>
