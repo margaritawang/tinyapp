@@ -12,7 +12,7 @@
             <li><a href="/about">About</a></li>
         </ul>
         <% if (username) { %>
-          <h3>Hello <%= username %>,</h3>
+          <h3>Welcome <%= username %>,</h3>
           <form method="post" action="/logout"><button type="submit">Log Out</button></form>
         <% } else { %>
           <form method="post" action="/login">
