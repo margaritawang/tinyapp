@@ -7,21 +7,17 @@
             Tiny App
         </a>
 
+
         <ul class="nav navbar-nav">
+        <% if (user_id) { %>
+        <h2> Welcome Back!</h2><form method="post" action="/logout"><button type="submit">Log Out</button></form>
+        <% } %>
             <li><a href="/">Home</a></li>
             <li><a href="/about">About</a></li>
+            <li><a href="/login">Log In</a></li>
+            <li><a href="/register">Register</a></li>
         </ul>
-        <% if (username) { %>
-          <h3>Welcome <%= username %>,</h3>
-          <form method="post" action="/logout"><button type="submit">Log Out</button></form>
-        <% } else { %>
-          <form method="post" action="/login">
-          <p>
-          <label for="Login">Username</label>
-          <input id="username" name="username"> <button type="submit">Log In</button>
-          </p>
-          </form>
-        <% } %>
+
     </div>
 
 
