@@ -123,15 +123,16 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  // console.log(urlDatabase);
+  var shortURL = req.params.id;
+  var userDB = urlsForUser(req.session.userID);
+  console.log(userDB);
   let templateVars = {
-   shortURL:  req.params.id,
-   longURL: urlDatabase[req.params.id].longURL,
+   shortURL:  shortURL,
+   longURL: userDB[shortURL],
    user_id: req.session.userID
   }
 
-  let userDB = urlsForUser(req.session.userID);
-    if (userDB[req.params.id] === undefined) {
+  if (userDB[req.params.id] === undefined) {
     res.send('Please log in first!')
   } else {
     res.render("urls_show", templateVars);
