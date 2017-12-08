@@ -1,12 +1,16 @@
 var express = require("express");
 var app = express();
 var PORT = process.env.PORT || 8080; // default port 8080
+const bcrypt = require('bcrypt');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
 var cookieParser = require('cookie-parser');
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['yuyumeer']
+}));
 
 app.set('view engine', 'ejs');
 
@@ -119,7 +123,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   let templateVars = {
    shortURL:  req.params.id,
    longURL: urlDatabase[req.params.id].longURL,
@@ -153,16 +157,14 @@ app.get('/login', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-  var email = req.body.email;
-  console.log(email);
-  var password = req.body.password;
-  console.log(password);
+  let email = req.body.email;
+  let password = req.body.password;
    if (!email || !password) {
      res.status(400).end("<html><body>Bad Request: Please enter email or password!</body></html>\n");
     return false;
   }
   for (var user in users) {
-    if (email === users[user].email && password == users[user].password) {
+    if (email === users[user].email && bcrypt.compareSync(password, users[user].password)) {
       res.cookie('userID',user);
       res.redirect('/urls');
     }
@@ -182,6 +184,7 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   var email = req.body.email;
   var password = req.body.password;
+  var hashedPassword = bcrypt.hashSync(password, 10);
   var user_id = generateRandomString();
    if (!email || !password) {
      res.status(400).end("<html><body>Bad Request: Please enter email or password!</body></html>\n");
@@ -196,12 +199,13 @@ app.post('/register', (req, res) => {
   users[user_id] = {};
   users[user_id]['id'] = user_id;
   users[user_id]['email'] = email;
-  users[user_id]['password'] = password;
+  users[user_id]['password'] = hashedPassword;
+  // console.log(users[user_id].password);
   res.cookie('userID',user_id);
   // res.cookie('email', email);
   // res.cookie('password', password);
   res.redirect('/urls');
-  console.log(users);
+  // console.log(users);
 })
 
 app.listen(PORT, () => {
