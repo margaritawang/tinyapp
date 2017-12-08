@@ -62,24 +62,14 @@ function checkLoginStatus(req) {
 }
 
 function urlsForUser(id) {
-
+  let userDB = {};
+  for (var url in urlDatabase) {
+    if (urlDatabase[url].uid === id) {
+      userDB[url] = urlDatabase[url].longURL;
+    }
+  }
+  return userDB;
 }
-
-// function ensureLoggedIn(req, res, next) {
-//   if (req.cookies.user_id) {
-//     return next();
-//   } else {
-//     return res.redirect('/login');
-//   }
-// }
-
-
-// app.use((req,res,next) => {
-//   const uid = ....
-//   res.locals.user = .....
-//   res.locals.userUrls = getUsersUrls(uid)    //urlDatabase[uid] loop and push....
-//   return next();
-// });
 
 app.get("/", (req, res) => {
   res.end("<html><body>Hello World</body></html>\n");
@@ -91,11 +81,11 @@ app.get('/urls.json', (req, res) => {
 
 
 app.get('/urls', (req, res) => {
-  var user_id = req.cookies.userID;
   let templateVars = {
-    user_id: user_id,
-    urls: urlDatabase };
-  console.log(templateVars);
+    user_id: req.cookies.userID,
+    userDB: urlsForUser(req.cookies.userID)
+  }
+  // console.log(?);
   res.render('urls_index', templateVars);
 });
 
@@ -118,7 +108,7 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL].id = shortURL; // debug statement to see POST parameters
   urlDatabase[shortURL].longURL = req.body.longURL;
   urlDatabase[shortURL].uid = req.cookies.userID;
-  console.log(urlDatabase);
+  // console.log(urlDatabase);
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -135,9 +125,15 @@ app.get("/urls/:id", (req, res) => {
    longURL: urlDatabase[req.params.id].longURL,
    user_id: req.cookies.userID
   }
-  console.log(templateVars);
 
-  res.render("urls_show", templateVars);
+  let userDB = urlsForUser(req.cookies.userID);
+  if (userDB[req.params.id] === undefined) {
+    res.send('Please log in first!')
+  } else {
+    res.render("urls_show", templateVars);
+  }
+  // console.log(templateVars);
+
 });
 
 app.post("/urls/:id", (req, res) => {

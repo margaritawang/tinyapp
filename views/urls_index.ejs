@@ -10,13 +10,14 @@
 
     <h2>List of IDs and URLs</h2>
     <ul>
-    <% for (var url in urls) { %>
-        <% if (urls[url].uid === user_id) { %>
-        <li><%= url + ': '%> <a href="<%= urls[url].longURL %>"><%= urls[url].longURL %></a></li>
+    <% for (var url in userDB) { %>
+        <li><%= url + ': '%> <a href="<%= userDB[url] %>"><%= userDB[url] %></a></li>
         <form method="post" action="/urls/<%= url %>/delete"> <a href="/urls/<%= url %>">Edit</a> <button type="submit">Delete</button></form>
-        <% } %>
     <% } %>
     </ul>
+    <% if (userDB === {} || userDB === undefined) { %>
+        <h3>You don't have any URLs!</h3>
+    <% } %>
     <a href="/urls/new">Generate a Short ID for Your URL</a>
 </body>
 </html>
