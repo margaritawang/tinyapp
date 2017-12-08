@@ -15,9 +15,7 @@
         <form method="post" action="/urls/<%= url %>/delete"> <a href="/urls/<%= url %>">Edit</a> <button type="submit">Delete</button></form>
     <% } %>
     </ul>
-    <% if (userDB === {} || userDB === undefined) { %>
-        <h3>You don't have any URLs!</h3>
-    <% } %>
+
     <a href="/urls/new">Generate a Short ID for Your URL</a>
 </body>
 </html>
