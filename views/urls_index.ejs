@@ -12,7 +12,7 @@
     <ul>
     <% for (var url in userDB) { %>
         <li><%= url + ': '%> <a href="<%= userDB[url] %>"><%= userDB[url] %></a></li>
-        <form method="post" action="/urls/<%= url %>/delete"> <a href="/urls/<%= url %>">Edit</a> <button type="submit">Delete</button></form>
+        <form method="post" action="/urls/<%= url %>/?_method=DELETE"> <a href="/urls/<%= url %>">Edit</a> <button type="submit">Delete</button></form>
     <% } %>
     </ul>
 
