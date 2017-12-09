@@ -9,12 +9,15 @@
 
 
         <ul class="nav navbar-nav">
-        <% if (user_id) { %>
-        <h2> Welcome to Tinyapp, <%= email %>!</h2><form method="post" action="/logout"><button type="submit">Log Out</button></form>
-        <% } else {%>
-            <li><a href="/login">Log In</a></li>
-            <li><a href="/register">Register</a></li>
-        <% } %>
+            <% if (user_id) { %>
+                <h2> Welcome to Tinyapp, <%= email %>!</h2>
+                <form method="post" action="/logout">
+                    <button type="submit">Log Out</button>
+                </form>
+            <% } else {%>
+                <li><a href="/login">Log In</a></li>
+                <li><a href="/register">Register</a></li>
+            <% } %>
             <li><a href="/">Home</a></li>
         </ul>
 
