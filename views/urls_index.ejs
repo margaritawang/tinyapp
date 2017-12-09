@@ -11,7 +11,7 @@
     <h2>List of IDs and URLs</h2>
     <ul>
         <% for (var url in userDB) { %>
-            <li><%= url + ': '%> <a href="<%= userDB[url] %>"><%= userDB[url] %></a></li>
+            <li><a href='<%= userDB[url] %>'> <%= url %>: <a href="<%= userDB[url] %>"><%= userDB[url] %></a></li>
             <form method="post" action="/urls/<%= url %>/?_method=DELETE">
                 <a href="/urls/<%= url %>">Edit</a>
                 <button type="submit">Delete</button>

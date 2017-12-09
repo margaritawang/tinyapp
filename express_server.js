@@ -112,23 +112,30 @@ app.get('/urls', (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-
+  // if user is logged in
   if (checkLoginStatus(req)) {
     let templateVars = {
       userId: req.session.userID,
       email: users[req.session.userID].email
     };
-
+    // returns HTML with:
+    // the site header (see Display Requirements above)
+    // a form which contains:
+    // a text input field for the original (long) URL
+    // a submit button which makes a POST request to /urls
     res.render("urls_new", templateVars);
   } else {
+    // if user is not logged in redirects to the /login page
     res.redirect('/login');
   }
 });
 
 app.post("/urls", (req, res) => {
+  // if user is not logged in returns HTML with a relevant error message
   if (!req.session.userID) {
     res.status(401).send("<html><body>'Please log in first!'<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
   } else {
+    // if user is logged in generates a short URL, saves it, and associates it with the user
     let shortURL = generateRandomString();
     urlDatabase[shortURL] = {
       id: shortURL,
@@ -137,15 +144,18 @@ app.post("/urls", (req, res) => {
       views: 0
     };
 
+    // redirects to /urls/:id, where :id matches the ID of the newly saved URL
     res.redirect(`/urls/${shortURL}`);
   }
 });
 
 app.get("/u/:shortURL", (req, res) => {
   let shortURL = req.params.shortURL;
+  // if URL for the given ID does not exist returns HTML with a relevant error message
   if (!urlDatabase[shortURL]) {
-    res.send("URL doesn't exist!");
+    res.status(404).send("URL doesn't exist!");
   } else {
+  // if URL for the given ID exists redirects to the corresponding long URL
     let longURL = urlDatabase[shortURL].longURL;
     urlDatabase[shortURL].views += 1;
     res.redirect(longURL);
@@ -156,12 +166,16 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   var shortURL = req.params.id;
   var userDB = urlsForUser(req.session.userID);
-
+  // if user is not logged in returns HTML with a relevant error message
   if (!req.session.userID) {
     res.status(401).send("<html><body>Please log in first!<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
+  // if user is logged it but does not own the URL with the given ID returns HTML with a relevant error message
   } else if (userDB[req.params.id] === undefined) {
     res.status(401).send("<html><body>No access to URL!<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
   } else {
+  //  if user is logged in and owns the URL for the given ID returns HTML with:
+  // the site header,the short URL (for the given ID), a form which contains:
+  // the corresponding long URL, an update button which makes a POST request to /urls/:id
     let templateVars = {
       shortURL: shortURL,
       longURL: userDB[shortURL],
@@ -174,19 +188,21 @@ app.get("/urls/:id", (req, res) => {
 
 app.put("/urls/:id", (req, res) => {
   var userDB = urlsForUser(req.session.userID);
-
+  // if user is not logged in, returns HTML with a relevant error message
   if (!req.session.userID) {
     res.status(401).send("<html><body>'Please log in first!'<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
+  //  if user is logged it but does not own the URL for the given ID returns HTML with a relevant error message
   } else if (userDB[req.params.id] === undefined) {
     res.send("<html><body>No access to URL! <a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
   } else {
+    // if user is logged in and owns the URL for the given ID updates the URL, redirects to /urls
     let shortURL = req.params.id;
     let longURL = req.body.longURL;
     if (!shortURL || !longURL) {
       res.redirect('/urls');
     } else {
       urlDatabase[shortURL].longURL = longURL;
-      res.redirect(`/urls/${shortURL}`);
+      res.redirect('/urls');
     }
   }
 
@@ -194,21 +210,25 @@ app.put("/urls/:id", (req, res) => {
 
 app.delete('/urls/:id', (req, res) => {
   var userDB = urlsForUser(req.session.userID);
-
+  // if user is not logged in returns HTML with a relevant error message
   if (!req.session.userID) {
     res.status(401).send("<html><body>'Please log in first!'<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
+  // if user is logged it but does not own the URL for the given ID returns HTML with a relevant error message
   } else if (userDB[req.params.id] === undefined) {
     res.send("<html><body>No access to URL! <a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
   } else {
+  // if user is logged in and owns the URL for the given ID deletes the URL, redirects to /urls
     delete urlDatabase[req.params.id];
     res.redirect('/urls');
   }
 });
 
 app.get('/login', (req, res) => {
+  // if user is logged in redirects to /urls
   if (checkLoginStatus(req)) {
     res.redirect('/urls');
   } else {
+  // if user is not logged inreturns HTML with a form which containsinput fields for email and password, submit button that makes a POST request to /login
     res.render('login');
   }
 });
@@ -217,28 +237,35 @@ app.post('/login', (req, res) => {
   let email = req.body.email;
   let password = req.body.password;
   if (!email || !password) {
-    res.status(400).end("<html><body>Bad Request: Please enter email or password!</body></html>\n");
+    res.status(400).send("<html><body>Bad Request: Please enter email or password! <a href='/login'>Log In</a></body></html>\n");
     return;
   }
   for (var user in users) {
+    // If email and password params match an existing user sets a cookie, redirects to /urls
     if (email === users[user].email && bcrypt.compareSync(password, users[user].password)) {
       req.session.userID = users[user].id;
       res.redirect('/urls');
       return;
     }
   }
-  res.status(403).send('Username or password incorrect!');
+  // if email and password params don't match an existing user returns HTML with a relevant error message
+  res.status(403).send("<html><body>Username or password incorrect! <a href='/login'>Log In</a> <a href='/register'>Register</a> </body></html>\n");
 });
 
 app.post('/logout', (req, res) => {
+  // deletes cookie
   req.session = null;
+  // redirects to /urls
   res.redirect('/urls');
 });
 
 app.get('/register', (req, res) => {
+  // if user is logged in redirects to /urls
   if (checkLoginStatus(req)) {
     res.redirect('/urls');
   } else {
+    //  if user is not logged in returns HTML witha form which contains input fields for email and password
+    // a register button that makes a POST request to /register
     res.render("register");
   }
 });
@@ -248,24 +275,27 @@ app.post('/register', (req, res) => {
   var password = req.body.password;
   var hashedPassword = bcrypt.hashSync(password, 10);
   var userId = generateRandomString();
+  //   if email or password are empty returns HTML with a relevant error message
   if (!email || !password) {
     res.status(400).end("<html><body>Bad Request: Please enter email or password!</body></html>\n");
     return;
   }
   for (var user in users) {
+    // if email already exists returns HTML with a relevant error message
     if (email === users[user].email) {
       res.status(400).end("<html><body>Bad Request: Email already exists! </body></html>\n");
       return;
     }
   }
-
+  // otherwise creates a new user encrypts the new user's password with bcrypt
   users[userId] = {
     id: userId,
     email: email,
     password: hashedPassword
   };
-
+  // sets a cookie
   req.session.userID = userId;
+  // redirects to /urls
   res.redirect('/urls');
 });
 
