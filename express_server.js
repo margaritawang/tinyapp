@@ -1,6 +1,6 @@
 var express = require("express");
 var app = express();
-var PORT = process.env.PORT || 8080; // default port 8080
+var PORT = process.env.PORT || 8080;
 const bcrypt = require('bcrypt');
 var cookieSession = require('cookie-session');
 var methodOverride = require('method-override');
@@ -23,7 +23,7 @@ const users = {
     email: "a@example.com",
     password: "123"
   },
- "b": {
+  "b": {
     id: "b",
     email: "b@example.com",
     password: "456"
@@ -33,7 +33,7 @@ const users = {
     email: "c@example.com",
     password: "789"
   }
-}
+};
 
 var urlDatabase = {
   "b2xVn2": {
@@ -41,7 +41,7 @@ var urlDatabase = {
     longURL: "http://www.lighthouselabs.ca",
     uid: 'a',
     views: 0
-    },
+  },
   "9sm5xK": {
     id: '9sm5xK',
     longURL: "http://www.google.com",
@@ -53,7 +53,7 @@ var urlDatabase = {
     longURL: "http://facebook.com",
     uid: 'b',
     views: 0
-  },
+  }
 };
 
 function generateRandomString() {
@@ -81,6 +81,7 @@ function urlsForUser(id) {
   return userDB;
 }
 
+
 app.get("/", (req, res) => {
   //if user is logged in, redirect to /urls
   if (checkLoginStatus(req)) {
@@ -91,11 +92,6 @@ app.get("/", (req, res) => {
   }
 });
 
-// app.get('/urls.json', (req, res) => {
-//   res.json(urlDatabase);
-// })
-
-
 app.get('/urls', (req, res) => {
   //   if user is logged in returns HTML with: the site header, a list (or table) of URLs the user has created, each list item containing:
   // a short URL, the short URL's matching long URL, an edit button which makes a GET request to /urls/:id
@@ -103,14 +99,15 @@ app.get('/urls', (req, res) => {
   // a link to "Create a New Short Link" which makes a GET request to /urls/new
   if (checkLoginStatus(req)) {
     let templateVars = {
-      user_id: req.session.userID,
+      userId: req.session.userID,
       userDB: urlsForUser(req.session.userID),
       email: users[req.session.userID].email
-    }
+    };
+
     res.render('urls_index', templateVars);
   } else {
-// if user is not logged in returns HTML with a relevant error message
-    res.status(401).send("<html><body>Bad Request: Please enter email or password! <a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n")
+    // if user is not logged in returns HTML with a relevant error message
+    res.status(401).send("<html><body>Please log in or register! <a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
   }
 });
 
@@ -118,10 +115,11 @@ app.get("/urls/new", (req, res) => {
 
   if (checkLoginStatus(req)) {
     let templateVars = {
-      user_id: req.session.userID,
+      userId: req.session.userID,
       email: users[req.session.userID].email
     };
-    res.render("urls_new",templateVars);
+
+    res.render("urls_new", templateVars);
   } else {
     res.redirect('/login');
   }
@@ -133,20 +131,14 @@ app.post("/urls", (req, res) => {
   } else {
     let shortURL = generateRandomString();
     urlDatabase[shortURL] = {
-     id: shortURL,
-     longURL: req.body.longURL,
-     uid: req.session.userID,
-     views: 0,
-    }
+      id: shortURL,
+      longURL: req.body.longURL,
+      uid: req.session.userID,
+      views: 0
+    };
+
     res.redirect(`/urls/${shortURL}`);
   }
-
-  // urlDatabase[shortURL] = {};
-  // urlDatabase[shortURL].id = shortURL; // debug statement to see POST parameters
-  // urlDatabase[shortURL].longURL = req.body.longURL;
-  // urlDatabase[shortURL].uid = req.session.userID;
-  // urlDatabase[shortURL].views = 0;
-
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -168,14 +160,14 @@ app.get("/urls/:id", (req, res) => {
   if (!req.session.userID) {
     res.status(401).send("<html><body>Please log in first!<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
   } else if (userDB[req.params.id] === undefined) {
-    res.status(401).send("<html><body>No access to URL!<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n")
+    res.status(401).send("<html><body>No access to URL!<a href='/login'>Log In</a> <a href='/register'>Register</a></body></html>\n");
   } else {
     let templateVars = {
-      shortURL:  shortURL,
+      shortURL: shortURL,
       longURL: userDB[shortURL],
-      user_id: req.session.userID,
+      userId: req.session.userID,
       email: users[req.session.userID].email
-    }
+    };
     res.render("urls_show", templateVars);
   }
 });
@@ -235,7 +227,7 @@ app.post('/login', (req, res) => {
       return;
     }
   }
-  res.status(403).send('Username or password incorrect!');   // wait what?
+  res.status(403).send('Username or password incorrect!');
 });
 
 app.post('/logout', (req, res) => {
@@ -255,7 +247,7 @@ app.post('/register', (req, res) => {
   var email = req.body.email;
   var password = req.body.password;
   var hashedPassword = bcrypt.hashSync(password, 10);
-  var user_id = generateRandomString();
+  var userId = generateRandomString();
   if (!email || !password) {
     res.status(400).end("<html><body>Bad Request: Please enter email or password!</body></html>\n");
     return;
@@ -267,17 +259,15 @@ app.post('/register', (req, res) => {
     }
   }
 
-  users[user_id] = {
-      id: user_id,
-      email: email,
-      password: hashedPassword
+  users[userId] = {
+    id: userId,
+    email: email,
+    password: hashedPassword
   };
-  // users[user_id]['id'] = user_id;
-  // users[user_id]['email'] = email;
-  // users[user_id]['password'] = hashedPassword;
-  req.session.userID = user_id;
+
+  req.session.userID = userId;
   res.redirect('/urls');
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
